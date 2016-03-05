@@ -516,6 +516,9 @@ if __name__ == '__main__':
 		time.sleep(startTime - int(time.time()))
 	else:
 		print 'start now'
+	pool = multiprocessing.Pool(processes = 1)
+	pool.apply_async(checkCart, (refUrl,uName, ))
+	pool.close()
 	while True:
 		req_add2cart = urllib2.Request(nikeUrl,req_add2cart_body)
 		req_add2cart.add_header('Referer', refUrl)
@@ -553,6 +556,7 @@ if __name__ == '__main__':
 				checkOut = CheckOut()
 				CKstatus = checkOut.doCheckOut('https://www.shoepalace.com/onestepcheckout/',uName)
 				#cookie.save(ignore_discard=True, ignore_expires=True)
+				pool.join()
 				break
 	#print req_add2cart.header_items()
 	#print req2cart.info()
