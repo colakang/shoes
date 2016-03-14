@@ -398,7 +398,10 @@ if __name__ == '__main__':
 						if v == "psh":
 							tempPsh = newHtml[k+1]
 							if (len(tempPsh) > 6):
-								psh = tempPsh
+								psh = tempPsh.split('_').pop()
+					#if (psh.find('_') != -1):  # Reset Pil & Psh
+					#	pil = "-4"
+					#	psh = ""
 					print html
 					time.sleep(8)
 				elif html.find('019B-05200023') != -1:
