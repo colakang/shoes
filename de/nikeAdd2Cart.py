@@ -367,7 +367,7 @@ if __name__ == '__main__':
 				nikeUrl = 'https://secure-store.nike.com/eu/services/jcartService?callback=nike_Cart_handleJCartResponse&'+add2CartUrl
 			elif e.fp is not None:
 			        peer = e.fp.fp._sock.fp._sock.getpeername()
-			        print("%s: %s\n\tIP and port: %s:%d\n\tpeer = %r" % (str(e), e.geturl(), peer[0], peer[1], peer))
+			        print("%s: %s\n\tIP and port: %s:%d\n\t" % (str(e), e.geturl(), peer[0], peer[1]))
 			else:
 			        print("%s: %s\n\tIP and port: <could not be retrieved>" % (str(e), e.geturl()))
 			time.sleep(15)
@@ -398,10 +398,16 @@ if __name__ == '__main__':
 						if v == "psh":
 							tempPsh = newHtml[k+1]
 							if (len(tempPsh) > 6):
-								psh = tempPsh
+								psh = tempPsh.split('_').pop()
+					#if (psh.find('_') != -1):  # Reset Pil & Psh
+					#	pil = "-4"
+					#	psh = ""
 					print html
 					time.sleep(8)
 				elif html.find('019B-05200023') != -1:
+					print html
+					time.sleep(8)
+				elif (int(pil) >= 0) and (html.find('Please try again shortly') != -1):
 					print html
 					time.sleep(8)
 				else:
