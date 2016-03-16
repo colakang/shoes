@@ -240,8 +240,8 @@ class CheckOut:
 		req_getInfo.add_header('Accept-Language', 'zh-Hans-CN,zh-Hans;q=0.8,en-US;q=0.5,en;q=0.3')
 		req_getInfo.add_header('Connection', 'keep-ailve')
 		req_getInfo.add_header('User-agent', 'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.152 Safari/537.36')
-		print refUrl
-		print uName
+		#print refUrl
+		#print uName
 		while True:
 			try:
 				req2Info = opener.open(req_getInfo)
@@ -511,14 +511,14 @@ if __name__ == '__main__':
 	req_add2cart_body = urllib.urlencode(result)
 	#print req_add2cart_body
 	#sys.exit()
+	pool = multiprocessing.Pool(processes = 1)
+	pool.apply_async(checkCart, (refUrl,uName, ))
+	pool.close()
 	if (startTime - int(time.time())) >= 1:
 		print "Start Time = "+time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(startTime)) 
 		time.sleep(startTime - int(time.time()))
 	else:
 		print 'start now'
-	pool = multiprocessing.Pool(processes = 1)
-	pool.apply_async(checkCart, (refUrl,uName, ))
-	pool.close()
 	while True:
 		req_add2cart = urllib2.Request(nikeUrl,req_add2cart_body)
 		req_add2cart.add_header('Referer', refUrl)
