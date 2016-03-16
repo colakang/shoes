@@ -35,15 +35,17 @@ function doCheckOut (thecasper,aPid,uName,fs,loop) {
 
 	thecasper.wait(1000);
 	thecasper.thenOpen('https://m.footaction.com/?uri=checkout', function(response) {
-		while (true) {
-			if (response == undefined || response.status == null || response.status >= 400) {
-				this.wait(5000);
-				this.reload(function() {
-						this.echo("loaded again");
-					});
-			} else {
-				break;
-			}
+		
+		var checked = false;
+		var cUrl = this.getCurrentUrl();
+		if ((cUrl.search(/error/i) != -1) | (cUrl.search(/cart/i) !=-1) | (cUrl.search(/403.html/i) | (cUrl.search(/500.html/i) ) {
+			this.echo('get Error: '+loop+' : '+cUrl);
+			var checked = doCheckOut(this,aPid,uName,fs,0);			
+		} 
+
+		if (checked == true) {
+
+			return true;
 		}
 
 		this.waitUntilVisible('a#payMethodPaneContinue', function() {                  //等到'.tweet-row'选择器匹配的元素出现时再执行回调函数
@@ -79,10 +81,13 @@ function doCheckOut (thecasper,aPid,uName,fs,loop) {
 						});
 					//this.reload();
 				}
-				//this.reload(function() {
 				this.echo("No payMethodPaneContinue Button! Reload again");
-				doCheckOut(this,aPid,uName,fs,loop);
-				//});
+				var checked = false;
+				checked = doCheckOut(this,aPid,uName,fs,loop);
+				if (checked == true) {
+
+					return true;
+				}
 		}, 10000);                                                       //超时时间,两秒钟后指定的选择器还没出现,就算失败 
 	});
 	thecasper.then(function() {
@@ -127,11 +132,11 @@ function doCheckOut (thecasper,aPid,uName,fs,loop) {
 				loop = loop+1;
 				doCheckOut(this,aPid,uName,fs,loop);
 			}
-
+	
 		},50000);
 	 
 	});
-return;
+return true;
 }
 
 function submitCheckOut (thecasper,aPid,uName,fs,loop) {
@@ -179,21 +184,18 @@ function submitCheckOut (thecasper,aPid,uName,fs,loop) {
 	});
 	thecasper.then(function() {
 		while(loop<15) {
-		//while(this.visable('div#inventoryCheck_loading')) {
-
 			this.wait(5000,function() {
 				this.echo('cUrl:'+this.getCurrentUrl());
 				this.capture('capture/'+aPid+'_'+uName+'-04-'+loop+'.jpg', undefined, {
 						format: 'jpg',
 						quality: 75
 					});
-
-			//	if (loop<15) {
 					loop = loop+1;
 					this.echo('Loop Times: '+loop);
-					//submitCheckOut(this,aPid,uName,fs,loop);
-			//	}
-
+					if (this.exists('a#orderSubmit')) {
+						this.echo('Found a#orderSubmit');
+						this.click('a#orderSubmit');
+					}
 			});
 	
 		}

@@ -1,6 +1,6 @@
 #!/usr/local/bin/python
 #coding:utf-8
-import urllib,urllib2,cookielib,time,sys,re,json,httplib,os,subprocess,gzip,StringIO
+import urllib,urllib2,cookielib,time,sys,re,json,httplib,os,subprocess,gzip,StringIO,multiprocessing
 from bs4 import BeautifulSoup
 import time,webbrowser
 import Cookie
@@ -211,9 +211,119 @@ class Login_In:
 						rfc2109=False,
 			))
 		return ret
+
+def removeCart(refUrl,uName,postData):
+	cookiePath = "./log/"+uName+"_MfootactionCookies.txt" 
+	cookie = cookielib.MozillaCookieJar(cookiePath)
+	cookie.load(ignore_discard=True, ignore_expires=True)
+	cookieProc = urllib2.HTTPCookieProcessor(cookie)
+	opener = urllib2.build_opener(cookieProc)
+	urllib2.install_opener(opener)
+	print postData
+	req_getInfo = urllib2.Request('http://m.footaction.com/?uri=cart',postData)
+	req_getInfo.add_header('Referer', 'http://m.footaction.com/?uri=cart')
+	req_getInfo.add_header('User-agent', 'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36')
+	req_getInfo.add_header('Accept','text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8')
+	req_getInfo.add_header('Accept-Encoding','gzip, deflate, sdch')
+	req_getInfo.add_header('Accept-Language','zh-CN,zh;q=0.8')
+	req_getInfo.add_header('Cache-Control','no-cache')
+	req_getInfo.add_header('Upgrade-Insecure-Requests','1')
+	while True:
+		try:
+			req2Info = opener.open(req_getInfo)
+		except urllib2.HTTPError,e:    #HTTPError必须排在URLError的前面
+			print "The server couldn't fulfill the request"
+			print "Error code:",e.code
+			time.sleep(5)
+			#print "Return content:",e.read()
+		except urllib2.URLError,e:
+			print "Failed to reach the server"
+			print "The reason:",e.reason
+			time.sleep(5)
+		else:
+			#something you should do
+			if req2Info.info().get('Content-Encoding') == 'gzip':
+				buf = StringIO.StringIO(req2Info.read())
+				f = gzip.GzipFile(fileobj=buf)
+				html = f.read()
+			else:
+				html = req2Info.read()
+			if re.search('form id="shoppingCartForm"',html) == None:
+				print "Removed all Item"
+				return True
+			else:
+				print "Some thing in cart"
+				return False
+			print "sleep 300"
+			time.sleep(300)
+
+def checkCart(refUrl,uName,sh):
+	cookiePath = "./log/"+uName+"_MfootactionCookies.txt" 
+	cookie = cookielib.MozillaCookieJar(cookiePath)
+	cookie.load(ignore_discard=True, ignore_expires=True)
+	cookieProc = urllib2.HTTPCookieProcessor(cookie)
+	opener = urllib2.build_opener(cookieProc)
+	urllib2.install_opener(opener)
+	req_getInfo = urllib2.Request('http://m.footaction.com/?uri=cart')
+	req_getInfo.add_header('Referer', 'http://m.footaction.com/?uri=cart')
+	req_getInfo.add_header('User-agent', 'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36')
+	req_getInfo.add_header('Accept','text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8')
+	req_getInfo.add_header('Accept-Encoding','gzip, deflate, sdch')
+	req_getInfo.add_header('Accept-Language','zh-CN,zh;q=0.8')
+	req_getInfo.add_header('Cache-Control','no-cache')
+	req_getInfo.add_header('Upgrade-Insecure-Requests','1')
+	while True:
+		try:
+			req2Info = opener.open(req_getInfo)
+		except urllib2.HTTPError,e:    #HTTPError必须排在URLError的前面
+			print "The server couldn't fulfill the request"
+			print "Error code:",e.code
+			time.sleep(5)
+			#print "Return content:",e.read()
+		except urllib2.URLError,e:
+			print "Failed to reach the server"
+			print "The reason:",e.reason
+			time.sleep(5)
+		else:
+			#something you should do
+			if req2Info.info().get('Content-Encoding') == 'gzip':
+				buf = StringIO.StringIO(req2Info.read())
+				f = gzip.GzipFile(fileobj=buf)
+				html = f.read()
+			else:
+				html = req2Info.read()
+			if re.search('form id="shoppingCartForm"',html) == None:
+				print "Nothing in Cart"
+			else:
+				soupInfo = BeautifulSoup(html,'html.parser')
+				result = {}
+				tmp = ''
+				updateIDs = soupInfo.find(id='shoppingCartForm').find_all(type='hidden',attrs={'name':'updateIDs'})
+				SKUs = soupInfo.find(id='shoppingCartForm').find_all(type='hidden',attrs={'name':'SKUs'})
+				allHidden = soupInfo.find(id='shoppingCartForm').find_all('input',value=True)
+				for value in allHidden:
+					if value['value']:
+						tmp = tmp + "&" + value['name'] + '=' + urllib.quote_plus(value['value'])
+				result['cartAction'] = 'remove'
+				for k,inputHidden in enumerate(updateIDs):
+					if re.search(inputHidden['value'],refUrl) == None:
+						print "Remove this Itme:"+inputHidden['value']+ " SKUs = " +SKUs[k]['value']
+						result['selectedID'] = inputHidden['value']
+						postData = urllib.urlencode(result)
+						postData = postData + tmp
+						#print postData
+						removeCart(refUrl,uName,postData)
+					else:
+						print "Go to checkout!!"
+						child = subprocess.Popen(sh,shell=True)
+						child.wait()
+						return True
+			print "sleep 300"
+			time.sleep(300)
 if __name__ == '__main__':
 	reload(sys)
 	sys.setdefaultencoding("UTF8")
+
 	try: 
 		Mode = sys.argv[1] 
 	except IndexError:
@@ -242,6 +352,18 @@ if __name__ == '__main__':
 		login_test = Login_In()
 		login_test.saveCookies(uName,uPass)
 		sys.exit()
+	elif Mode == "5":
+			print 'Mode = Check Cart  Username = '+uName
+			if os.path.exists(cookiePath) == False or (int(time.time()) - int(os.path.getmtime(cookiePath))) >= 1800:
+				print 'Login first'
+				login_test = Login_In()
+				login_test.saveCookies(uName,uPass)
+			pool = multiprocessing.Pool(processes = 1)
+			pool.apply_async(checkCart, (refUrl,uName,'111', ))
+			print "Go Go Go"
+			pool.close()
+			pool.join()
+			sys.exit()		
 	else:
 		if os.path.exists(cookiePath) == False or (int(time.time()) - int(os.path.getmtime(cookiePath))) >= 7200:
 			print 'Login first'
@@ -278,6 +400,10 @@ if __name__ == '__main__':
 	req_add2cart_body = urllib.urlencode(result)
 	#print req_add2cart_body
 	#sys.exit()
+	sh = "casperjs check.js --uName='"+uName+"' --uPass='"+uPass+"' --aPid='"+Pid+"' --cFile='"+cookiePath+"' --ccd='"+ccd[uName]+"'"
+	pool = multiprocessing.Pool(processes = 1)
+	pool.apply_async(checkCart, (refUrl,uName,sh, ))
+	pool.close()
 	if (startTime - int(time.time())) >= 1:
 		print "Start Time = "+time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(startTime)) 
 		time.sleep(startTime - int(time.time()))
@@ -357,6 +483,7 @@ if __name__ == '__main__':
 				print sh
 				child = subprocess.Popen(sh,shell=True)
 				child.wait()
+				pool.join()
 				break
 	# checkout url = http://m.footaction.com/?uri=cart&action=checkout
 	#print req_add2cart.header_items()
