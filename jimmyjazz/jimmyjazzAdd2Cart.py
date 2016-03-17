@@ -376,7 +376,7 @@ class checkOut:
 					argvs['form_build_id'] = form_build_id
 					argvs['form_id'] = form_id
 					print argvs
-					#self.submit(refUrl,argvs) 
+					self.submit(refUrl,argvs) 
 					break
 		self.cookie.save(ignore_discard=True, ignore_expires=True)
 	def submit (self,refUrl,argvs):
