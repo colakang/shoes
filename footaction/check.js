@@ -38,7 +38,7 @@ function doCheckOut (thecasper,aPid,uName,fs,loop) {
 		
 		var checked = false;
 		var cUrl = this.getCurrentUrl();
-		if ((cUrl.search(/error/i) != -1) | (cUrl.search(/cart/i) !=-1) | (cUrl.search(/403.html/i) | (cUrl.search(/500.html/i) ) {
+		if ((cUrl.search(/error/i) != -1) | (cUrl.search(/cart/i) !=-1) | (cUrl.search(/403.html/i) !=-1) | (cUrl.search(/500.html/i)!=-1) ) {
 			this.echo('get Error: '+loop+' : '+cUrl);
 			var checked = doCheckOut(this,aPid,uName,fs,0);			
 		} 

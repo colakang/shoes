@@ -306,7 +306,7 @@ def checkCart(refUrl,uName,sh):
 						tmp = tmp + "&" + value['name'] + '=' + urllib.quote_plus(value['value'])
 				result['cartAction'] = 'remove'
 				for k,inputHidden in enumerate(updateIDs):
-					if re.search(inputHidden['value'],refUrl) == None:
+					if re.search(filter(str.isdigit,inputHidden['value']),refUrl) == None:
 						print "Remove this Itme:"+inputHidden['value']+ " SKUs = " +SKUs[k]['value']
 						result['selectedID'] = inputHidden['value']
 						postData = urllib.urlencode(result)
