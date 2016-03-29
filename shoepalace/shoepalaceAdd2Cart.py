@@ -50,60 +50,36 @@ class FastMode:
 				html = req2Info.read()
 				soupInfo = BeautifulSoup(html,'html.parser')
 				result = {}
-				form = soupInfo.find('form',id='product_addtocart_form')
-				if form == None:
-					print "Product Not Releasing"
-					time.sleep(5)
-				else:
-					for inputHidden in form.find_all(type='hidden'):
-						if inputHidden['value']:
-							result[inputHidden['name'].encode('utf-8').strip()] = urllib.quote_plus(inputHidden['value'].encode('utf-8').strip())
-						else:
-							result[inputHidden['name'].encode('utf-8').strip()] = ''
-					nikeUrl =  form.get('action')
-					#print form.find('script').get_text().encode('utf-8').strip()
-					newHidden = re.findall(r"(?<=')[^,:]+?(?=')",form.find('script').get_text().encode('utf-8').strip())
-					result['super_attribute['+newHidden[1]+']'] = newHidden[0]
-					if Mode == "2":
-						for inputInfo in form.find_all('dd',onclick=True):
-							if inputInfo.find('span').get_text().encode('utf-8').strip() == refSkuid:
-								result[inputInfo.find('input')['name'].encode('utf-8').strip()] = urllib.quote_plus(inputInfo.find('input')['value'].encode('utf-8').strip())
-								newHidden = re.findall(r"(?<=')[^,:]+?(?=')",inputInfo.get('onclick').encode('utf-8').strip())
-								result['super_attribute['+newHidden[1]+']'] = newHidden[0]
-								break
-					else:
-						try:
-							sizeItem = self.siezList[refSkuid]
-						except:
-							sizeItem = '144'
-						else:
-							result['select_super_attribute[211]'] = sizeItem
-							result['super_attribute[211]'] = sizeItem
-					print result
-					if len(result) != 6:
-						print 'Error,No Enough arguments or Size Not Found!! Try again'
-						try:
-							refSkuid = form.find('dd',onclick=True).find('span').get_text().encode('utf-8').strip()
-						except: 
-							print 'No More Size '
-							print refSkuid
-							sys.exit()
-						else:
-							print refSkuid
+				sizeList = soupInfo.find_all('a',class_='button w32 dark')
+				sizeOut = soupInfo.find_all('span',class_='button w32 disabled')
+				if len(sizeList) == 0:
+					if len(sizeOut) == 0: 
+						print "Product Not Releasing"
 						time.sleep(5)
-						#sys.exit()
 					else:
+						print "Sold Out!!"
+						sys.exit()
+				else:
+					for inputHidden in sizeList:
+						if inputHidden.get_text().encode('utf-8').strip() == refSkuid:
+							nikeUrl =  inputHidden['href']
+							break
+					#print form.find('script').get_text().encode('utf-8').strip()
+					try:
+						nikeUrl
+					except NameError:
+						refSkuid = sizeList[0].get_text().encode('utf-8').strip()
+						print 'Size Not Fount! Change Size to:' + refSkuid
+						time.sleep(5)					
+					else: 
+						nikeUrl = "https://www.shoepalace.com/"+nikeUrl.replace('/s/','')
 						pidPath = "./argv/"+filter(str.isdigit,refUrl)+'_'+refSkuid+'.txt'
-						with open(pidPath, 'w') as outfile:
-							json.dump(result, outfile)
-						file_object = open(pidPath, 'a')
-						file_object.write("\n"+nikeUrl)
+						file_object = open(pidPath, 'w')
+						file_object.write(nikeUrl)
 						file_object.close( )
 						self.nikeUrl = nikeUrl
 						# Write Down Argvs
-						return result
-						break
-					print 'Size Not Fount'
+						return True
 					#sys.exit()
 class Login_In:
 	def saveCookies (self,uName,uPass):
@@ -495,7 +471,7 @@ if __name__ == '__main__':
 			nikeUrl = fastMode.nikeUrl
 		else:
 			print 'result file exits'
-			result = json.loads(jsonFile.readline())
+			#result = json.loads(jsonFile.readline())
 			nikeUrl = jsonFile.readline()
 	#print nikeUrl
 	try:
@@ -507,8 +483,8 @@ if __name__ == '__main__':
 	cookieProc = urllib2.HTTPCookieProcessor(cookie)
 	opener = urllib2.build_opener(cookieProc)
 	urllib2.install_opener(opener)
-	#print result
-	req_add2cart_body = urllib.urlencode(result)
+	#print nikeUrl
+	#req_add2cart_body = urllib.urlencode(result)
 	#print req_add2cart_body
 	#sys.exit()
 	pool = multiprocessing.Pool(processes = 1)
@@ -520,7 +496,7 @@ if __name__ == '__main__':
 	else:
 		print 'start now'
 	while True:
-		req_add2cart = urllib2.Request(nikeUrl,req_add2cart_body)
+		req_add2cart = urllib2.Request(nikeUrl)
 		req_add2cart.add_header('Referer', refUrl)
 		req_add2cart.add_header('Cache-Control', 'no-cache')
 		req_add2cart.add_header('Connection', 'keep-ailve')
@@ -544,7 +520,7 @@ if __name__ == '__main__':
 				file_object = open('./log/'+Pid+'_'+uName+'_shoepalaceError.txt', 'w')
 				file_object.write(html)
 				file_object.close( )
-				time.sleep(4)
+				time.sleep(6)
 			else:
 				file_object = open('./log/'+Pid+'_'+uName+'_shoepalaceItem.txt', 'w')
 				file_object.write(html)
