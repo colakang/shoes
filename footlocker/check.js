@@ -1,9 +1,9 @@
 var casper = require('casper').create({
-    verbose: false,
-    logLevel: 'info',
+    verbose: true,
+    logLevel: 'debug',
     pageSettings: {
-        loadImages: false,
-        loadPlugins: false,
+        loadImages: true,
+        loadPlugins: true,
 	webSecurityEnabled: false
     }
 
@@ -149,6 +149,7 @@ function submitCheckOut (thecasper,aPid,uName,fs,loop) {
 		if (this.exists('a#orderSubmit')) {
 			this.echo('Found a#orderSubmit');
 			this.click('a#orderSubmit');
+			submitCheckOut(this,aPid,uName,fs,0);
 		}
 	});
 	thecasper.then(function() {
@@ -195,6 +196,7 @@ function submitCheckOut (thecasper,aPid,uName,fs,loop) {
 					if (this.exists('a#orderSubmit')) {
 						this.echo('Found a#orderSubmit');
 						this.click('a#orderSubmit');
+						submitCheckOut(this,aPid,uName,fs,0);
 					}
 			});
 	
