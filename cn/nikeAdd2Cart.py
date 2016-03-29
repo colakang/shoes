@@ -329,7 +329,7 @@ if __name__ == '__main__':
 	print 'sleepTime = '+str(startTime-time.time())
 	if (startTime - time.time()) > 0:
 		print "Start Time = "+time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(startTime)) 
-		time.sleep(startTime - time.time() - 0.003)
+		time.sleep(startTime - time.time() - 0.101)
 	else:
 		print 'start now'
 	print 'Now = '+str(startTime-time.time())
@@ -358,7 +358,14 @@ if __name__ == '__main__':
 		except urllib2.HTTPError,e:    #HTTPError必须排在URLError的前面
 			#print "The server couldn't fulfill the request"
 			#print "Error code:",e.code
-			if e.fp is not None:
+			if e.code == 400:
+				print "\nError code:",e.code
+				print e.geturl()
+				print "请重新选择码数"
+				shoe_size_monitor = Shoe_Size_Monitor(refUrl,refSkuid)
+				add2CartUrl = shoe_size_monitor.monitor()
+				nikeUrl = 'https://secure-store.nike.com/us/services/jcartService?callback=nike_Cart_handleJCartResponse&'+add2CartUrl
+			elif e.fp is not None:
 			        peer = e.fp.fp._sock.fp._sock.getpeername()
 			        print("%s: %s\n\tIP and port: %s:%d\n\t" % (str(e), e.geturl(), peer[0], peer[1]))
 			else:
@@ -391,15 +398,23 @@ if __name__ == '__main__':
 						if v == "psh":
 							tempPsh = newHtml[k+1]
 							if (len(tempPsh) > 6):
-								psh = tempPsh
+								psh = tempPsh.split('_').pop()
+					if (len(psh) > 23):  # Reset Pil & Psh
+						pil = "-4"
+						psh = ""
 					print html
 					time.sleep(8)
 				elif html.find('019B-05200023') != -1:
 					print html
 					time.sleep(8)
-				elif (pil != "") and (int(pil) >= 0) and (html.find('Please try again shortly') != -1):
-					print html
-					time.sleep(8)
+				elif (html.find('Please try again shortly') != -1):
+					try:
+						if (int(pil) >= 0):	
+							print html
+							time.sleep(8)
+					except:
+						print html
+						time.sleep(8)			
 				else:
 					print u"添加失败，稍后再试".encode('utf-8')
 					file_object = open('./log/'+uName+'_'+Pid+'_item_fail.txt', 'w')

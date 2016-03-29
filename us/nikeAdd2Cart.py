@@ -399,17 +399,22 @@ if __name__ == '__main__':
 							tempPsh = newHtml[k+1]
 							if (len(tempPsh) > 6):
 								psh = tempPsh.split('_').pop()
-					#if (psh.find('_') != -1):  # Reset Pil & Psh
-					#	pil = "-4"
-					#	psh = ""
+					if (len(psh) > 23):  # Reset Pil & Psh
+						pil = "-4"
+						psh = ""
 					print html
 					time.sleep(8)
 				elif html.find('019B-05200023') != -1:
 					print html
 					time.sleep(8)
-				elif (int(pil) >= 0) and (html.find('Please try again shortly') != -1):
-					print html
-					time.sleep(8)
+				elif (html.find('Please try again shortly') != -1):
+					try:
+						if (int(pil) >= 0):	
+							print html
+							time.sleep(8)
+					except:
+						print html
+						time.sleep(8)			
 				else:
 					print u"添加失败，稍后再试".encode('utf-8')
 					file_object = open('./log/'+uName+'_'+Pid+'_item_fail.txt', 'w')
