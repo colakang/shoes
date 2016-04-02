@@ -288,7 +288,7 @@ class CheckOut:
 						'shipping[region]':'',
 						#'shipping[save_in_address_book]':'1',
 						'shipping[address_id]':shippingAddressId['value'],
-						'shipping_method':'freeshipping_freeshipping',
+						'shipping_method':'ups_03',
 						'payment[method]':'firstdataglobalgateway',
 						'payment[cc_type]':cc_type,
 						'payment[cc_number]':cc_number,
@@ -390,7 +390,8 @@ def checkCart(refUrl,uName):
 				html = f.read().decode('utf-8')
 			else:
 				html = req2Info.read().decode('utf-8')
-			if re.search(refUrl,html) == None:
+			values = re.findall('[http|https]://[a-zA-Z.0-9]*/(.*)',refUrl,re.I)
+			if re.search(values[0],html) == None:
 				print "Nothing In Cart"
 			else:
 				print "Item was Added, CheckOut Now!"
