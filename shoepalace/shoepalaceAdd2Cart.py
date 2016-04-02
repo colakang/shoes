@@ -505,14 +505,15 @@ if __name__ == '__main__':
 		try:
 			req2cart = opener.open(req_add2cart)
 		except urllib2.HTTPError,e:    #HTTPError必须排在URLError的前面
-			print "The server couldn't fulfill the request"
 			print "Error code:",e.code
-			time.sleep(5)
+			soup = BeautifulSoup(e.read().decode('utf-8'), 'html.parser')
+			print soup.title.string
+			time.sleep(15)
 			#print "Return content:",e.read()
 		except urllib2.URLError,e:
 			print "Failed to reach the server"
 			print "The reason:",e.reason
-			time.sleep(5)
+			time.sleep(15)
 		else:
 			#something you should do
 			html = req2cart.read().decode('utf-8')
@@ -521,7 +522,7 @@ if __name__ == '__main__':
 				file_object = open('./log/'+Pid+'_'+uName+'_shoepalaceError.txt', 'w')
 				file_object.write(html)
 				file_object.close( )
-				time.sleep(6)
+				time.sleep(10)
 			else:
 				file_object = open('./log/'+Pid+'_'+uName+'_shoepalaceItem.txt', 'w')
 				file_object.write(html)
