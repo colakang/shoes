@@ -38,7 +38,11 @@ function doCheckOut (thecasper,aPid,uName,fs,loop) {
 		
 		var checked = false;
 		var cUrl = this.getCurrentUrl();
-		if ((cUrl.search(/error/i) != -1) | (cUrl.search(/cart/i) !=-1) | (cUrl.search(/403.html/i) !=-1) | (cUrl.search(/500.html/i)!=-1) ) {
+		if ((cUrl.search(/empty/i) != -1) ) {
+			this.echo('Shipping Cart is Empty, Pls Login again or Add again!\n '+loop+' : '+cUrl,'INFO');
+			casper.exit();			
+		} 
+		if ((cUrl.search(/error/i) != -1) | (cUrl.search(/cart/i) !=-1) | (cUrl.search(/403.html/i) !=-1) | (cUrl.search(/500.html/i)!=-1) | (cUrl.search(/message/i)!=-1) ) {
 			this.echo('get Error: '+loop+' : '+cUrl);
 			var checked = doCheckOut(this,aPid,uName,fs,0);			
 		} 
@@ -51,9 +55,9 @@ function doCheckOut (thecasper,aPid,uName,fs,loop) {
 		this.waitUntilVisible('a#payMethodPaneContinue', function() {                  //等到'.tweet-row'选择器匹配的元素出现时再执行回调函数
 			this.sendKeys('input[name=CardNumber]', cardNo, {keepFocus: true});
 			casper.evaluate(function(cardYY,cardCCV,cardMM) {
-				$('#CardExpireDateMM').val(cardMM);
-				$('#CardExpireDateYY').val(cardYY);
-				$('#CardCCV').val(cardCCV);
+				document.querySelector('input#CardExpireDateMM.hidden').value = cardMM;
+				document.querySelector('input#CardExpireDateYY.hidden').value = cardYY;
+				document.querySelector('input#CardCCV.hidden').value = cardCCV;
 			},cardYY,cardCCV,cardMM);
 			this.capture('capture/'+aPid+'_'+uName+'-02.jpg',undefined,{
 				format: 'jpg',
@@ -125,14 +129,18 @@ function doCheckOut (thecasper,aPid,uName,fs,loop) {
 					format: 'jpg',
 					quality: 75
 				});
-			this.echo("No Submit Button! Wait.......");
-	       		var errorMess = this.getElementInfo('span#CC_statusCheck');
-			this.echo("Error Message : "+errorMess.text);
+			var cUrl = this.getCurrentUrl();
+			if ((cUrl.search(/error/i) != -1) | (cUrl.search(/cart/i) !=-1) | (cUrl.search(/403.html/i) !=-1) | (cUrl.search(/500.html/i)!=-1) | (cUrl.search(/message/i) != -1) ) {
+				this.echo('get Error: '+loop+' : '+cUrl);
+			} else {
+				this.echo("No Submit Button! Wait.......");
+		       		var errorMess = this.getElementInfo('span#CC_statusCheck');
+				this.echo("Error Message : "+errorMess.text);
+			}
 			if (loop<15) {
 				loop = loop+1;
 				doCheckOut(this,aPid,uName,fs,loop);
 			}
-	
 		},50000);
 	 
 	});
@@ -148,6 +156,12 @@ function submitCheckOut (thecasper,aPid,uName,fs,loop) {
 
 		if (this.exists('a#orderSubmit')) {
 			this.echo('Found a#orderSubmit');
+	       		var errorMess = this.getElementInfo('span#CC_statusCheck');
+			this.echo("Error Message : "+errorMess.text);
+			this.capture('capture/'+aPid+'_'+uName+'-04-error.jpg', undefined, {
+				format: 'jpg',
+				quality: 75
+			});
 			this.click('a#orderSubmit');
 			submitCheckOut(this,aPid,uName,fs,0);
 		}
@@ -177,7 +191,7 @@ function submitCheckOut (thecasper,aPid,uName,fs,loop) {
 	});
 	thecasper.then(function() {
 		var cUrl = this.getCurrentUrl();
-		if ((cUrl.search(/error/i) != -1) | (cUrl.search(/cart/i) !=-1) ) {
+		if ((cUrl.search(/error/i) != -1) | (cUrl.search(/cart/i) !=-1) |  (cUrl.search(/message/i) !=-1)  ) {
 			this.echo('get Error: '+loop+' : '+cUrl);
 			doCheckOut(this,aPid,uName,fs,0);			
 		}
@@ -322,12 +336,10 @@ casper.then(function() {
 	doCheckOut(this,aPid,uName,fs,0);
 
 });
-
 casper.then(function() {
 
 	submitCheckOut(this,aPid,uName,fs,0);
 });
-
 
 
 
