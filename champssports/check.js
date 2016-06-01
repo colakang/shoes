@@ -31,22 +31,82 @@ var cardCCV = bank[ccd].cardCCV;
 casper.echo("Start At "+new Date().toLocaleString());
 
 
+function goLogin (thecasper,aPid,uName,fs,loop) {
+
+
+	thecasper.wait(1000);
+
+	thecasper.thenOpen('https://m.champassport.com/?uri=account', function(response) {
+			this.waitUntilVisible('input#email', function() { 
+	        	        this.fillSelectors('form[name="accountSignInForm"]', {
+        	        	        'input[name="email"]': uName,
+                	       		'input[name="password"]': 'cola123456',
+	                	}, false);
+           	     		this.click("button#account_access_log_in_button");
+				//utils.dump(this.getElementsInfo('div.nike-unite-submit-button.loginSubmit.nike-unite-component input'));
+				this.capture('./capture/'+uName+'_1.jpg',undefined,{
+					format: 'jpg',
+					quality: 75
+					});                 //成功时调用的函数,给整个页面截图
+				var file = './log/'+uName+'_JsCookies.txt';	
+				var res = '# Netscape HTTP Cookie File\n\n';
+				var t = '';
+				var time = '';
+				this.page.cookies.forEach(function (cookie) {
+					if (cookie.domain.charAt(0) == '.') { 
+						t = 'TRUE';
+					} else {
+						t = "FALSE";
+					}
+					if (cookie.expiry) {
+						time = cookie.expiry;
+					}
+					res += utils.format("%s\t%s\t%s\t%s\t%s\t%s\t%s\n", cookie.domain, t, cookie.path, 'FALSE', time, cookie.name, cookie.value);
+				});
+				fs.write(file, res, 'w');
+			}, function() {
+				this.capture('./capture/'+uName+'_1_E.jpg', undefined, {
+					format: 'jpg',
+					quality: 75
+				});
+			}, 5000);
+			casper.wait(5000, function(){ 
+				if ((this.getCurrentUrl().search(/accountInformation/i) == -1)) {
+					this.echo("Login Fail!!");	
+				}
+			}); 
+
+
+	});
+}
+
 function doCheckOut (thecasper,aPid,uName,fs,loop) {
 
 	thecasper.wait(1000);
-	thecasper.thenOpen('https://m.champssports.com/?uri=checkout', function(response) {
+	thecasper.thenOpen('https://m.champassport.com/?uri=checkout', function(response) {
 		
 		var checked = false;
 		var cUrl = this.getCurrentUrl();
-		if ((cUrl.search(/empty/i) != -1) ) {
-			this.echo('Shipping Cart is Empty, Pls Login again or Add again!\n '+loop+' : '+cUrl,'INFO');
-			casper.exit();			
-		} 
-		if ((cUrl.search(/error/i) != -1) | (cUrl.search(/cart/i) !=-1) | (cUrl.search(/403.html/i) !=-1) | (cUrl.search(/500.html/i)!=-1) | (cUrl.search(/message/i)!=-1) ) {
-			this.echo('get Error: '+loop+' : '+cUrl);
-			var checked = doCheckOut(this,aPid,uName,fs,0);			
-		} 
-
+		switch (true)
+		{
+			case ((cUrl.search(/empty/i) != -1) ):
+			{ 
+				this.echo('Shipping Cart is Empty, Pls Login again or Add again!\n '+loop+' : '+cUrl,'INFO');
+				casper.exit();			
+				break;
+			}
+			case ((cUrl.search(/sessionExpired/i) !=-1)  ):
+			{
+				this.echo('Login Again!  Error: '+loop+' : '+cUrl);
+				goLogin(this,aPid,uName,fs,0);
+			}
+			case ((cUrl.search(/error/i) != -1) | (cUrl.search(/cart/i) !=-1) | (cUrl.search(/403.html/i) !=-1) | (cUrl.search(/500.html/i)!=-1) | (cUrl.search(/message/i)!=-1) ):
+			{
+				this.echo('get Error: '+loop+' : '+cUrl);
+				var checked = doCheckOut(this,aPid,uName,fs,0);	
+				break;
+			}		
+		}
 		if (checked == true) {
 
 			return true;
@@ -230,7 +290,7 @@ function goCart(thecasper,newurl) {
 
 	thecasper.wait(1000);
 
-	thecasper.thenOpen('https://m.champssports.com/?uri=cart', function(response) {
+	thecasper.thenOpen('https://m.champassport.com/?uri=cart', function(response) {
 		while (true) {
 			if (response == undefined || response.status == null || response.status >= 400) {
 				this.wait(5000);
@@ -325,8 +385,8 @@ casper.start().then(function() {
 	//this.page.cookies = phantom.cookies;
 	//utils.dump(phantom.cookies);
 	//casper.exit();
-	//goCart(this,"https://m.champssports.com/?uri=checkout");
-	//doCheckOut(this,"https://m.champssports.com/?uri=checkout");
+	//goCart(this,"https://m.champassport.com/?uri=checkout");
+	//doCheckOut(this,"https://m.champassport.com/?uri=checkout");
 });
 
 casper.userAgent('Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36');
@@ -362,7 +422,7 @@ casper.run(function() {
 	});
 	fs.write(file, res, 'w');
 	//var cookies = JSON.stringify((this.page.cookies)); 
-	//fs.write('/root/nike/champssports/cookies.txt', cookies, 'w'); 
+	//fs.write('/root/nike/champassport/cookies.txt', cookies, 'w'); 
 	casper.echo("End at "+new Date().toLocaleString());
 	this.exit();                                                                      
 
