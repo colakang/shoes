@@ -31,6 +31,55 @@ var cardCCV = bank[ccd].cardCCV;
 casper.echo("Start At "+new Date().toLocaleString());
 
 
+function goLogin (thecasper,aPid,uName,fs,loop) {
+
+
+	thecasper.wait(1000);
+
+	thecasper.thenOpen('https://m.eastbay.com/?uri=account', function(response) {
+			this.waitUntilVisible('input#email', function() { 
+	        	        this.fillSelectors('form[name="accountSignInForm"]', {
+        	        	        'input[name="email"]': uName,
+                	       		'input[name="password"]': 'cola123456',
+	                	}, false);
+           	     		this.click("button#account_access_log_in_button");
+				//utils.dump(this.getElementsInfo('div.nike-unite-submit-button.loginSubmit.nike-unite-component input'));
+				this.capture('./capture/'+uName+'_1.jpg',undefined,{
+					format: 'jpg',
+					quality: 75
+					});                 //成功时调用的函数,给整个页面截图
+				var file = './log/'+uName+'_JsCookies.txt';	
+				var res = '# Netscape HTTP Cookie File\n\n';
+				var t = '';
+				var time = '';
+				this.page.cookies.forEach(function (cookie) {
+					if (cookie.domain.charAt(0) == '.') { 
+						t = 'TRUE';
+					} else {
+						t = "FALSE";
+					}
+					if (cookie.expiry) {
+						time = cookie.expiry;
+					}
+					res += utils.format("%s\t%s\t%s\t%s\t%s\t%s\t%s\n", cookie.domain, t, cookie.path, 'FALSE', time, cookie.name, cookie.value);
+				});
+				fs.write(file, res, 'w');
+			}, function() {
+				this.capture('./capture/'+uName+'_1_E.jpg', undefined, {
+					format: 'jpg',
+					quality: 75
+				});
+			}, 5000);
+			casper.wait(5000, function(){ 
+				if ((this.getCurrentUrl().search(/accountInformation/i) == -1)) {
+					this.echo("Login Fail!!");	
+				}
+			}); 
+
+
+	});
+}
+
 function doCheckOut (thecasper,aPid,uName,fs,loop) {
 
 	thecasper.wait(1000);
@@ -38,15 +87,26 @@ function doCheckOut (thecasper,aPid,uName,fs,loop) {
 		
 		var checked = false;
 		var cUrl = this.getCurrentUrl();
-		if ((cUrl.search(/empty/i) != -1) ) {
-			this.echo('Shipping Cart is Empty, Pls Login again or Add again!\n '+loop+' : '+cUrl,'INFO');
-			casper.exit();			
-		} 
-		if ((cUrl.search(/error/i) != -1) | (cUrl.search(/cart/i) !=-1) | (cUrl.search(/403.html/i) !=-1) | (cUrl.search(/500.html/i)!=-1) | (cUrl.search(/message/i)!=-1) ) {
-			this.echo('get Error: '+loop+' : '+cUrl);
-			var checked = doCheckOut(this,aPid,uName,fs,0);			
-		} 
-
+		switch (true)
+		{
+			case ((cUrl.search(/empty/i) != -1) ):
+			{ 
+				this.echo('Shipping Cart is Empty, Pls Login again or Add again!\n '+loop+' : '+cUrl,'INFO');
+				casper.exit();			
+				break;
+			}
+			case ((cUrl.search(/sessionExpired/i) !=-1)  ):
+			{
+				this.echo('Login Again!  Error: '+loop+' : '+cUrl);
+				goLogin(this,aPid,uName,fs,0);
+			}
+			case ((cUrl.search(/error/i) != -1) | (cUrl.search(/cart/i) !=-1) | (cUrl.search(/403.html/i) !=-1) | (cUrl.search(/500.html/i)!=-1) | (cUrl.search(/message/i)!=-1) ):
+			{
+				this.echo('get Error: '+loop+' : '+cUrl);
+				var checked = doCheckOut(this,aPid,uName,fs,0);	
+				break;
+			}		
+		}
 		if (checked == true) {
 
 			return true;
