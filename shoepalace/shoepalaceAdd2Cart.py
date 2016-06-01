@@ -38,12 +38,12 @@ class FastMode:
 			except urllib2.HTTPError,e:    #HTTPError必须排在URLError的前面
 				print "The server couldn't fulfill the request"
 				print "Error code:",e.code
-				time.sleep(5)
+				time.sleep(30)
 				#print "Return content:",e.read()
 			except urllib2.URLError,e:
 				print "Failed to reach the server"
 				print "The reason:",e.reason
-				time.sleep(5)
+				time.sleep(30)
 			else:
 				#something you should do
 				#req2Info = opener.open(req_getInfo)
@@ -55,7 +55,7 @@ class FastMode:
 				if len(sizeList) == 0:
 					if len(sizeOut) == 0: 
 						print "Product Not Releasing"
-						time.sleep(5)
+						time.sleep(30)
 					else:
 						print "Sold Out!!"
 						sys.exit()
@@ -216,20 +216,20 @@ class CheckOut:
 		req_getInfo.add_header('Accept-Language', 'zh-Hans-CN,zh-Hans;q=0.8,en-US;q=0.5,en;q=0.3')
 		req_getInfo.add_header('Connection', 'keep-ailve')
 		req_getInfo.add_header('User-agent', 'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.152 Safari/537.36')
-		#print refUrl
-		#print uName
+		print refUrl
+		print uName
 		while True:
 			try:
 				req2Info = opener.open(req_getInfo)
 			except urllib2.HTTPError,e:    #HTTPError必须排在URLError的前面
 				print "The server couldn't fulfill the request"
 				print "Error code:",e.code
-				time.sleep(5)
+				time.sleep(30)
 				#print "Return content:",e.read()
 			except urllib2.URLError,e:
 				print "Failed to reach the server"
 				print "The reason:",e.reason
-				time.sleep(5)
+				time.sleep(30)
 			else:
 				#something you should do
 				#req2Info = opener.open(req_getInfo)
@@ -245,9 +245,23 @@ class CheckOut:
 				soupInfo = BeautifulSoup(html,'html.parser')
 				shippingAddressId = soupInfo.find('input',id='shipping:address_id')
 				billing_address_id = soupInfo.find('select',{'name':'billing_address_id'}).find('option',{'selected':True})
+				billingCountryId = soupInfo.find('select',{'name':'billing[country_id]'}).find('option',{'selected':True})
+				billingFirstname = soupInfo.find('input',id='billing:firstname')
+				billingLastname = soupInfo.find('input',id='billing:lastname')
+				billingTelephone = soupInfo.find('input',id='billing:telephone')
+				billingStree1 = soupInfo.find('input',id='billing:street1')
+				billingStree2 = soupInfo.find('input',id='billing:street2')
+				billingCity = soupInfo.find('input',id='billing:city')
+				billingPostcode = soupInfo.find('input',id='billing:postcode')
+				billingRegion = soupInfo.find('input',id='billing:region')
 				shipping_address_id = soupInfo.find('select',{'name':'shipping_address_id'}).find('option',{'selected':True})
+				shipping_method = soupInfo.find('dl',class_="shipment-methods").find('input')
 				giftNoName = soupInfo.find('input',type='hidden',value='quote')
 				giftNo = re.findall(r"giftmessage\[(.*)\]\[type\]",giftNoName['name'].encode('utf-8').strip())
+				billingRegionId = re.findall(r"\$\(\"billing:region_id\"\).setAttribute\(\"defaultValue\",  \"(\d+)\"\)",html.encode('utf-8'))
+				shippingRegionId = re.findall(r"\$\(\"shipping:region_id\"\).setAttribute\(\"defaultValue\",  \"(\d+)\"\)",html.encode('utf-8'))
+				#print billingRegionId
+				#print shippingRegionId
 				#print shippingAddressId['value']
 				#print giftNo[0]
 				#print billing_address_id['value']
@@ -259,36 +273,37 @@ class CheckOut:
 				else:
 					request_body = urllib.urlencode({
 						'billing_address_id':billing_address_id['value'],
-						'billing[country_id]':'US',
-						'billing[firstname]':'',
-						'billing[lastname]':'',
-						'billing[street][]':'',
-						'billing[street][]':'',
-						'billing[city]':'fremont',
-						'billing[postcode]':'94536',
-						'billing[region_id]':'12',
-						'billing[region]':'',
-						'billing[telephone]':'',
+						'billing[country_id]':billingCountryId['value'],
+						'billing[firstname]':billingFirstname['value'],
+						'billing[lastname]':billingLastname['value'],
+						'billing[street][0]':billingStree1['value'],
+						'billing[street][1]':billingStree2['value'],
+						'billing[city]':billingCity['value'],
+						'billing[postcode]':billingPostcode['value'],
+						'billing[region_id]':billingRegionId[0],
+						'billing[region]':billingRegion['value'],
+						'billing[telephone]':billingTelephone['value'],
 						#'billing[email]':'colakang@gmail.com',
 						#'billing[confirmemail]':'colakang@gmail.com',
 						#'billing[customer_password]':'',
 						#'billing[confirm_password]':'',
-						#'billing[save_in_address_book]':'1',
+						'billing[save_in_address_book]':'1',
 						'billing[use_for_shipping]':'1',
 						'shipping_address_id':shipping_address_id['value'],
 						'shipping[country_id]':'US',
 						'shipping[firstname]':'',
 						'shipping[lastname]':'',
 						'shipping[telephone]':'',
-						'shipping[street][]':'',
-						'shipping[street][]':'',
-						'shipping[city]':'fremont',
-						'shipping[postcode]':'94536',
-						'shipping[region_id]':'12',
+						'shipping[street][0]':'',
+						'shipping[street][1]':'',
+						'shipping[city]':'',
+						'shipping[postcode]':'',
+						'shipping[region_id]':shippingRegionId[0],
 						'shipping[region]':'',
-						#'shipping[save_in_address_book]':'1',
-						'shipping[address_id]':shippingAddressId['value'],
+						'shipping[save_in_address_book]':'1',
+						'shipping[address_id]':'',
 						'shipping_method':'ups_03',
+						'shipping_method':shipping_method['value'],
 						'payment[method]':'firstdataglobalgateway',
 						'payment[cc_type]':cc_type,
 						'payment[cc_number]':cc_number,
@@ -323,12 +338,12 @@ class CheckOut:
 						except urllib2.HTTPError,e:    #HTTPError必须排在URLError的前面
 							print "The server couldn't fulfill the request"
 							print "Error code:",e.code
-							time.sleep(5)
+							time.sleep(30)
 							#print "Return content:",e.read()
 						except urllib2.URLError,e:
 							print "Failed to reach the server"
 							print "The reason:",e.reason
-							time.sleep(5)
+							time.sleep(30)
 						else:
 							#something you should do
 							if req2CheckOut.info().get('Content-Encoding') == 'gzip':
@@ -347,12 +362,18 @@ class CheckOut:
 								print 'CheckOut Error'
 								soupInfo = BeautifulSoup(html,'html.parser')
 								errorInfo = soupInfo.find('h2',class_="indentlr normal red")
+								errorMsg = soupInfo.find('li',class_="error-msg")
 								try: 
 									print errorInfo.text
 								except:
-									print html
+									try:
+										print errorMsg.txt
+									except:
+										print html
+									else:
+										return False
 								#sys.exit()
-							time.sleep(15)
+							time.sleep(30)
 
 def checkCart(refUrl,uName):
 	cookiePath = "./log/"+uName+"_shoepalaceCookies.txt" 
@@ -375,12 +396,12 @@ def checkCart(refUrl,uName):
 		except urllib2.HTTPError,e:    #HTTPError必须排在URLError的前面
 			print "The server couldn't fulfill the request"
 			print "Error code:",e.code
-			time.sleep(5)
+			time.sleep(30)
 			#print "Return content:",e.read()
 		except urllib2.URLError,e:
 			print "Failed to reach the server"
 			print "The reason:",e.reason
-			time.sleep(5)
+			time.sleep(30)
 		else:
 			#something you should do
 			#req2Info = opener.open(req_getInfo)
@@ -508,12 +529,12 @@ if __name__ == '__main__':
 			print "Error code:",e.code
 			soup = BeautifulSoup(e.read().decode('utf-8'), 'html.parser')
 			print soup.title.string
-			time.sleep(15)
+			time.sleep(30)
 			#print "Return content:",e.read()
 		except urllib2.URLError,e:
 			print "Failed to reach the server"
 			print "The reason:",e.reason
-			time.sleep(15)
+			time.sleep(30)
 		else:
 			#something you should do
 			html = req2cart.read().decode('utf-8')
@@ -522,7 +543,7 @@ if __name__ == '__main__':
 				file_object = open('./log/'+Pid+'_'+uName+'_shoepalaceError.txt', 'w')
 				file_object.write(html)
 				file_object.close( )
-				time.sleep(10)
+				time.sleep(30)
 			else:
 				file_object = open('./log/'+Pid+'_'+uName+'_shoepalaceItem.txt', 'w')
 				file_object.write(html)
