@@ -48,6 +48,7 @@ function goLogin (thecasper,aPid,uName,fs,loop) {
 					format: 'jpg',
 					quality: 75
 					});                 //成功时调用的函数,给整个页面截图
+/*
 				var file = './log/'+uName+'_JsCookies.txt';	
 				var res = '# Netscape HTTP Cookie File\n\n';
 				var t = '';
@@ -64,6 +65,7 @@ function goLogin (thecasper,aPid,uName,fs,loop) {
 					res += utils.format("%s\t%s\t%s\t%s\t%s\t%s\t%s\n", cookie.domain, t, cookie.path, 'FALSE', time, cookie.name, cookie.value);
 				});
 				fs.write(file, res, 'w');
+*/
 			}, function() {
 				this.capture('./capture/'+uName+'_1_E.jpg', undefined, {
 					format: 'jpg',
@@ -97,8 +99,8 @@ function doCheckOut (thecasper,aPid,uName,fs,loop) {
 			}
 			case ((cUrl.search(/sessionExpired/i) !=-1)  ):
 			{
-				this.echo('Login Again!  Error: '+loop+' : '+cUrl);
-				goLogin(this,aPid,uName,fs,0);
+				this.echo('goto Cart!  Error: '+loop+' : '+cUrl);
+				goCar(this,aPid,uName,fs,0);
 			}
 			case ((cUrl.search(/error/i) != -1) | (cUrl.search(/cart/i) !=-1) | (cUrl.search(/403.html/i) !=-1) | (cUrl.search(/500.html/i)!=-1) | (cUrl.search(/message/i)!=-1) ):
 			{
@@ -341,13 +343,15 @@ return;
 	
 
 casper.start().then(function() {
+/*
 	var JsCookie = 'log/'+uName+'_JsCookies.txt';	
 	if (fs.exists(JsCookie)) {
 		var file = JsCookie;
 		var changeDomain = false;
 		this.echo('++++++');
 	} else {
-		var file = cFile;
+		var file = false;
+		//var file = cFile;
 		var changeDomain = true;
 		this.echo('--------');
 	}
@@ -371,9 +375,9 @@ casper.start().then(function() {
 			phantom.addCookie(newCookie,true);
 	    });
 	} else {
-		casper.log("Unable to load cookies from " + file + ". File doesn't exist", "warning").exit();
+		casper.log("Unable to load cookies from " + file + ". File doesn't exist", "warning");
+		goLogin(this,aPid,uName,fs,0);
 	}
-
 	if (changeDomain == true) {
 		phantom.cookies.forEach(function (cookie) {
 			if (cookie.name.search(/TS01/) == -1) {
@@ -382,11 +386,13 @@ casper.start().then(function() {
 				}
 			}
 	})};
+*/
 	//this.page.cookies = phantom.cookies;
 	//utils.dump(phantom.cookies);
 	//casper.exit();
 	//goCart(this,"https://m.footaction.com/?uri=checkout");
 	//doCheckOut(this,"https://m.footaction.com/?uri=checkout");
+	goLogin(this,aPid,uName,fs,0);
 });
 
 casper.userAgent('Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36');

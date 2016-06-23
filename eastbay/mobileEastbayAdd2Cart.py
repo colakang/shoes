@@ -479,7 +479,7 @@ if __name__ == '__main__':
 				#if os.path.exists(cookiePath) == False or (int(time.time()) - int(os.path.getmtime(cookiePath))) >= 299:
 				#	login_test = Login_In()
 				#	login_test.saveCookies(uName,uPass)
-				sh = "casperjs check.js --uName='"+uName+"' --uPass='"+uPass+"' --aPid='"+Pid+"' --cFile='"+cookiePath+"' --ccd='"+ccd[uName]+"'"
+				sh = "casperjs check.js --uName='"+uName+"' --uPass='"+uPass+"' --aPid='"+Pid+"' --cFile='"+cookiePath+"' --ccd='"+ccd[uName]+"' --cookies-file='./log/js_"+uName+"_cookie.txt'"
 				print sh
 				child = subprocess.Popen(sh,shell=True)
 				child.wait()
