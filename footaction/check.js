@@ -100,7 +100,7 @@ function doCheckOut (thecasper,aPid,uName,fs,loop) {
 			case ((cUrl.search(/sessionExpired/i) !=-1)  ):
 			{
 				this.echo('goto Cart!  Error: '+loop+' : '+cUrl);
-				goCar(this,aPid,uName,fs,0);
+				goCart(this,'cart');
 			}
 			case ((cUrl.search(/error/i) != -1) | (cUrl.search(/cart/i) !=-1) | (cUrl.search(/403.html/i) !=-1) | (cUrl.search(/500.html/i)!=-1) | (cUrl.search(/message/i)!=-1) ):
 			{
