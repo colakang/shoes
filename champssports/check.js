@@ -257,8 +257,14 @@ function submitCheckOut (thecasper,aPid,uName,fs,loop) {
 			this.echo('get Error: '+loop+' : '+cUrl);
 			doCheckOut(this,aPid,uName,fs,0);			
 		}
+		if ((cUrl.search(/submit/i) != -1)) {
+			this.echo('Submit Success!');
+			var file = 'log/submit_'+aPid+'_'+uName+'.txt';	
+			fs.write(file, res, 'w');
+		}
 
 	});
+/*
 	thecasper.then(function() {
 		while(loop<15) {
 			this.wait(5000,function() {
@@ -278,6 +284,7 @@ function submitCheckOut (thecasper,aPid,uName,fs,loop) {
 	
 		}
 	});
+*/
 	thecasper.then(function() {
 		this.capture('capture/'+aPid+'_'+uName+'-05.jpg', undefined, {
 					format: 'jpg',
