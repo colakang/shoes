@@ -260,6 +260,7 @@ function submitCheckOut (thecasper,aPid,uName,fs,loop) {
 		if ((cUrl.search(/submit/i) != -1)) {
 			this.echo('Submit Success!');
 			var file = 'log/submit_'+aPid+'_'+uName+'.txt';	
+			var res = this.getHTML();
 			fs.write(file, res, 'w');
 		}
 
