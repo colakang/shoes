@@ -28,27 +28,40 @@ class FastMode:
 		opener = urllib2.build_opener(cookieProc)
 		urllib2.install_opener(opener)
 		req_getInfo = urllib2.Request(refUrl)
-		req_getInfo.add_header('Referer', 'http://m.footlocker.com')
-		req_getInfo.add_header('User-agent', 'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36')
+		req_getInfo.add_header('User-agent', 'Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.81 Mobile Safari/537.36')
 		req_getInfo.add_header('Accept','text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8')
-		req_getInfo.add_header('Accept-Encoding','gzip, deflate, sdch')
+		req_getInfo.add_header('Accept-Encoding','gzip, deflate, sdch, br')
 		req_getInfo.add_header('Accept-Language','zh-CN,zh;q=0.8')
 		req_getInfo.add_header('Cache-Control','no-cache')
+		req_getInfo.add_header('Connection','keep-alive')
 		req_getInfo.add_header('Upgrade-Insecure-Requests','1')
+		req_getInfo.add_header('Pragma','no-cache')
+		errorCount = 0
 		while True:
 			try:
 				req2Info = opener.open(req_getInfo)
 			except urllib2.HTTPError,e:    #HTTPError必须排在URLError的前面
 				print "The server couldn't fulfill the request"
 				print "Error code:",e.code
-				time.sleep(5)
+				if (e.code==403):
+					errorCount=errorCount+1
+				if (errorCount>15):
+					sys.exit()
+				buf = StringIO.StringIO(e.read())
+				f = gzip.GzipFile(fileobj=buf)
+				errorContent = f.read().decode('utf-8')
+				file_object = open('./log/'+Pid+'_'+uName+'_MfootlockerError'+str(e.code)+'.txt', 'w')
+				file_object.write(errorContent)
+				file_object.close( )
+				time.sleep(15)
 				#print "Return content:",e.read()
 			except urllib2.URLError,e:
 				print "Failed to reach the server"
 				print "The reason:",e.reason
-				time.sleep(5)
+				time.sleep(10)
 			else:
 				#something you should do
+				errorCount =0		#Rest errorCount
 				if req2Info.info().get('Content-Encoding') == 'gzip':
 					buf = StringIO.StringIO(req2Info.read())
 					f = gzip.GzipFile(fileobj=buf)
@@ -82,13 +95,14 @@ class Login_In:
 		opener = urllib2.build_opener(self.cookie_support)
 		urllib2.install_opener(opener)
 		req = urllib2.Request('https://m.footlocker.com/?uri=account')
-		req.add_header('Referer','https://m.footlocker.com/')
-		req.add_header('User-agent', 'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36')
+		req.add_header('User-agent', 'Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.81 Mobile Safari/537.36')
 		req.add_header('Accept','text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8')
-		req.add_header('Accept-Encoding','gzip, deflate, sdch')
+		req.add_header('Accept-Encoding','gzip, deflate, sdch, br')
 		req.add_header('Accept-Language','zh-CN,zh;q=0.8')
 		req.add_header('Cache-Control','no-cache')
+		req.add_header('Connection','keep-alive')
 		req.add_header('Upgrade-Insecure-Requests','1')
+		req.add_header('Pragma','no-cache')
 		url_check = True
 		while url_check == True:
 			try:
@@ -123,12 +137,13 @@ class Login_In:
 		self.login_email = uName
 		self.login_password = uPass
 		self.hdr = {
-					'User-Agent' : 'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36',
-					'Referer' : 'https://m.footlocker.com/?uri=account',
+					'User-Agent' : 'Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.81 Mobile Safari/537.36',
 					'Accept' : 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-					'Accept-Encoding' : 'gzip, deflate, sdch',
+					'Accept-Encoding' : 'gzip, deflate, sdch, br',
 					'Accept-Language' : 'zh-CN,zh;q=0.8',
 					'Cache-Control' : 'no-cache',
+					'Connection' : 'keep-alive',
+					'Pragma' : 'no-cache',
 					'Upgrade-Insecure-Requests' : '1'
 					}
 		self.requestKey = self.result['requestKey']
@@ -221,13 +236,14 @@ def removeCart(refUrl,uName,postData):
 	urllib2.install_opener(opener)
 	print postData
 	req_getInfo = urllib2.Request('http://m.footlocker.com/?uri=cart',postData)
-	req_getInfo.add_header('Referer', 'http://m.footlocker.com/?uri=cart')
-	req_getInfo.add_header('User-agent', 'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36')
+	req_getInfo.add_header('User-agent', 'Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.81 Mobile Safari/537.36')
 	req_getInfo.add_header('Accept','text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8')
-	req_getInfo.add_header('Accept-Encoding','gzip, deflate, sdch')
+	req_getInfo.add_header('Accept-Encoding','gzip, deflate, sdch, br')
 	req_getInfo.add_header('Accept-Language','zh-CN,zh;q=0.8')
 	req_getInfo.add_header('Cache-Control','no-cache')
+	req_getInfo.add_header('Connection','keep-alive')
 	req_getInfo.add_header('Upgrade-Insecure-Requests','1')
+	req_getInfo.add_header('Pragma','no-cache')
 	while True:
 		try:
 			req2Info = opener.open(req_getInfo)
@@ -265,13 +281,15 @@ def checkCart(refUrl,uName,sh):
 	opener = urllib2.build_opener(cookieProc)
 	urllib2.install_opener(opener)
 	req_getInfo = urllib2.Request('http://m.footlocker.com/?uri=cart')
-	req_getInfo.add_header('Referer', 'http://m.footlocker.com/?uri=cart')
-	req_getInfo.add_header('User-agent', 'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36')
+	req_getInfo.add_header('User-agent', 'Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.81 Mobile Safari/537.36')
 	req_getInfo.add_header('Accept','text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8')
-	req_getInfo.add_header('Accept-Encoding','gzip, deflate, sdch')
+	req_getInfo.add_header('Accept-Encoding','gzip, deflate, sdch, br')
 	req_getInfo.add_header('Accept-Language','zh-CN,zh;q=0.8')
 	req_getInfo.add_header('Cache-Control','no-cache')
+	req_getInfo.add_header('Connection','keep-alive')
 	req_getInfo.add_header('Upgrade-Insecure-Requests','1')
+	req_getInfo.add_header('Pragma','no-cache')
+
 	while True:
 		try:
 			req2Info = opener.open(req_getInfo)
@@ -400,7 +418,7 @@ if __name__ == '__main__':
 	req_add2cart_body = urllib.urlencode(result)
 	#print req_add2cart_body
 	#sys.exit()
-	sh = "casperjs check.js --uName='"+uName+"' --uPass='"+uPass+"' --aPid='"+Pid+"' --cFile='"+cookiePath+"' --ccd='"+ccd[uName]+"'"
+	sh = "proxychains casperjs check.js --uName='"+uName+"' --uPass='"+uPass+"' --aPid='"+Pid+"' --cFile='"+cookiePath+"' --ccd='"+ccd[uName]+"'"
 	pool = multiprocessing.Pool(processes = 1)
 	pool.apply_async(checkCart, (refUrl,uName,sh, ))
 	pool.close()
@@ -409,29 +427,43 @@ if __name__ == '__main__':
 		time.sleep(startTime - int(time.time()))
 	else:
 		print 'start now'
+	errorCount = 0
 	while True:
 		req_add2cart = urllib2.Request(nikeUrl,req_add2cart_body)
 		req_add2cart.add_header('Referer', refUrl)
-		req_add2cart.add_header('Connection', 'keep-ailve')
-		req_add2cart.add_header('User-agent', 'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36')
+		req_add2cart.add_header('User-agent', 'Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.81 Mobile Safari/537.36')
 		req_add2cart.add_header('Accept','text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8')
-		req_add2cart.add_header('Accept-Encoding','gzip, deflate, sdch')
+		req_add2cart.add_header('Accept-Encoding','gzip, deflate, sdch, br')
 		req_add2cart.add_header('Accept-Language','zh-CN,zh;q=0.8')
 		req_add2cart.add_header('Cache-Control','no-cache')
+		req_add2cart.add_header('Connection','keep-alive')
 		req_add2cart.add_header('Upgrade-Insecure-Requests','1')
+		req_add2cart.add_header('Pragma','no-cache')
+
 		try:
 			req2cart = opener.open(req_add2cart)
 		except urllib2.HTTPError,e:    #HTTPError必须排在URLError的前面
 			print "The server couldn't fulfill the request"
 			print "Error code:",e.code
-			time.sleep(5)
+			if (e.code==403):
+				errorCount=errorCount+1
+			if (errorCount>15):
+				sys.exit()
+			buf = StringIO.StringIO(e.read())
+			f = gzip.GzipFile(fileobj=buf)
+			errorContent = f.read().decode('utf-8')
+			file_object = open('./log/'+Pid+'_'+uName+'_MfootlockerError'+str(e.code)+'.txt', 'w')
+			file_object.write(errorContent)
+			file_object.close( )
+			time.sleep(15)
 			#print "Return content:",e.read()
 		except urllib2.URLError,e:
 			print "Failed to reach the server"
 			print "The reason:",e.reason
-			time.sleep(5)
+			time.sleep(10)
 		else:
 			#something you should do
+			errorCount =0		#Rest errorCount
 			if req2cart.info().get('Content-Encoding') == 'gzip':
 				buf = StringIO.StringIO(req2cart.read())
 				f = gzip.GzipFile(fileobj=buf)
@@ -468,7 +500,7 @@ if __name__ == '__main__':
 					file_object = open('./log/'+Pid+'_'+uName+'_MfootlockerError.txt', 'w')
 					file_object.write(html)
 					file_object.close( )
-				time.sleep(3)
+				time.sleep(5)
 			else:
 				file_object = open('./log/'+Pid+'_'+uName+'_MfootlockerItem.txt', 'w')
 				file_object.write(html)
@@ -479,7 +511,7 @@ if __name__ == '__main__':
 				#if os.path.exists(cookiePath) == False or (int(time.time()) - int(os.path.getmtime(cookiePath))) >= 299:
 				#	login_test = Login_In()
 				#	login_test.saveCookies(uName,uPass)
-				sh = "casperjs check.js --uName='"+uName+"' --uPass='"+uPass+"' --aPid='"+Pid+"' --cFile='"+cookiePath+"' --ccd='"+ccd[uName]+"' --cookies-file='./log/js_"+uName+"_cookie.txt'"
+				sh = "proxychains4 casperjs check.js --uName='"+uName+"' --uPass='"+uPass+"' --aPid='"+Pid+"' --cFile='"+cookiePath+"' --ccd='"+ccd[uName]+"' --cookies-file='./log/js_"+uName+"_cookie.txt'"
 				print sh
 				child = subprocess.Popen(sh,shell=True)
 				child.wait()
